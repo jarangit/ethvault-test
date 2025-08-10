@@ -192,6 +192,11 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         })
 
         try {
+          let balances = {
+            eth: "",
+            dETH: "",
+            sETH: ""
+          }
           // Initialize contracts with correct signer
           const dETH = new ethers.Contract(DETH_ADDRESS, dETHAbi, web3Signer)
           console.log("dETH contract initialized:", dETH.target)
@@ -221,11 +226,13 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         // Get ETH balance directly from RPC
         const directBalance = await getEthBalanceDirectly(userAddress)
         console.log("Set ETH balance to:", directBalance)
+        balances.eth = directBalance
 
         // Get dETH and sETH balances if contracts are available
         try {
           const dETH = new ethers.Contract(DETH_ADDRESS, dETHAbi, directProvider)
           const dETHBal = await dETH.balanceOf(userAddress)
+          balances.dETH = ethers.formatEther(dETHBal)
           console.log("dETH balance:", ethers.formatEther(dETHBal))
         } catch (error) {
           console.error("Error getting dETH balance:", error)
@@ -234,6 +241,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const sETH = new ethers.Contract(SETH_ADDRESS, sETHAbi, directProvider)
           const sETHBal = await sETH.balanceOf(userAddress)
+          balances.sETH = ethers.formatEther(sETHBal)
           console.log("sETH balance:", ethers.formatEther(sETHBal))
         } catch (error) {
           console.error("Error getting sETH balance:", error)
@@ -247,6 +255,8 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
           })
           setHasShownConnectToast(true)
         }
+
+        setBalances(balances)
       } catch (error) {
         console.error("Error connecting wallet:", error)
         toast({
