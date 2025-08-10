@@ -34,7 +34,12 @@ type Web3ContextType = {
   isConnected: boolean
   chainId: number | null
   refreshBalances: () => Promise<void>
-  networkName: string
+  networkName: string,
+  balances: {
+    eth: string,
+    dETH: string,
+    sETH: string
+  }
 }
 
 const Web3Context = createContext<Web3ContextType>({
@@ -51,6 +56,11 @@ const Web3Context = createContext<Web3ContextType>({
   chainId: null,
   refreshBalances: async () => {},
   networkName: "",
+  balances: {
+    eth: "",
+    dETH: "",
+    sETH: ""
+  }
 })
 
 export const useWeb3 = () => useContext(Web3Context)
@@ -66,6 +76,11 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isConnected, setIsConnected] = useState(false)
   const [chainId, setChainId] = useState<number | null>(null)
   const [networkName, setNetworkName] = useState("")
+  const [balances, setBalances] = useState({
+    eth: "",
+    dETH: "",
+    sETH: ""
+  })
   const [hasShownConnectToast, setHasShownConnectToast] = useState(false)
 
   const { toast } = useToast()
@@ -264,17 +279,24 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const refreshBalances = async () => {
     if (account) {
       try {
+        let balances = {
+          eth: "",
+          dETH: "",
+          sETH: ""
+        }
         console.log("Refreshing balances for account:", account)
 
         // Get ETH balance directly from RPC
         const directBalance = await getEthBalanceDirectly(account)
         console.log("Updated ETH balance:", directBalance)
+        balances.eth = directBalance
 
         // Get dETH balance if contract is available
         if (provider) {
           try {
             const dETH = new ethers.Contract(DETH_ADDRESS, dETHAbi, provider)
             const dETHBal = await dETH.balanceOf(account)
+            balances.dETH = ethers.formatEther(dETHBal)
             console.log("Updated dETH balance:", ethers.formatEther(dETHBal))
           } catch (error) {
             console.error("Error refreshing dETH balance:", error)
@@ -286,11 +308,14 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const sETH = new ethers.Contract(SETH_ADDRESS, sETHAbi, provider)
             const sETHBal = await sETH.balanceOf(account)
+            balances.sETH = ethers.formatEther(sETHBal)
             console.log("Updated sETH balance:", ethers.formatEther(sETHBal))
           } catch (error) {
             console.error("Error refreshing sETH balance:", error)
           }
         }
+        // Update state with new balances
+        setBalances(balances)
       } catch (error) {
         console.error("Error refreshing balances:", error)
       }
@@ -407,6 +432,7 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
         chainId,
         refreshBalances,
         networkName,
+        balances
       }}
     >
       {children}
