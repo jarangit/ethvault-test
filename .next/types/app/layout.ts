@@ -1,4 +1,4 @@
-// File: E:\github\ETHVault-master\ETHVault-master\app\layout.tsx
+// File: /Users/jaran/Documents/develop/personal/jobs/ethvault/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
